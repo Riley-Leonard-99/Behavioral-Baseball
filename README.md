@@ -10,8 +10,8 @@ https://drive.google.com/file/d/1wdzj8fid0fLP3aNgUQbgD752tuPCY0Rt/view?usp=shari
 
 ## Figure Samples:
 
-![Preview1](https://github.com/Riley-Leonard-99/Behavioral-Baseball/blob/main/Preview1.png)
+<img src=https://github.com/Riley-Leonard-99/Behavioral-Baseball/blob/main/Preview1.png width=60%> 
 
-![Preview2]([https://github.com/Riley-Leonard-99/Behavioral-Baseball/blob/main/Preview2.png])
+<img src=https://github.com/Riley-Leonard-99/Behavioral-Baseball/blob/main/Preview2.png width=60%> 
 
-![Preview3]([https://github.com/Riley-Leonard-99/Behavioral-Baseball/blob/main/Preview3.png])
+<img src=https://github.com/Riley-Leonard-99/Behavioral-Baseball/blob/main/Preview3.png width=60%> 
