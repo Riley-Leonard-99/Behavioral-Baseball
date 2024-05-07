@@ -1,0 +1,774 @@
+\documentclass[12pt]{article}
+
+%%%%%%%%%%%%%%% PACKAGES %%%%%%%%%%%%%%%
+
+\usepackage{url}
+\usepackage{amssymb}
+\usepackage{multicol}
+\usepackage{enumerate}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=cyan,
+    citecolor=magenta,
+    urlcolor=blue
+    }
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\numberwithin{equation}{section}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{amscd}
+\usepackage[affil-it]{authblk}
+\usepackage{mathtools}
+\usepackage{float}
+\usepackage{dcolumn}
+\usepackage{caption}
+\usepackage[backend=bibtex, style=authoryear-comp, natbib=true]{biblatex}
+\addbibresource{refs.bib}
+\usepackage{setspace}
+
+%%%%%%%%%%%%%%% TITLE/AUTHOR INFORMATION %%%%%%%%%%%%%%%
+
+\title{Behavioral Baseball: Identifying Cognitive Biases in Player Swing Decisions}
+\author{Riley Leonard}
+\affil{Cornell University}
+\date{May 2024}
+
+%%%%%%%%%%%%%%% CUSTOM FORMAT %%%%%%%%%%%%%%%
+
+\setlength{\textwidth}{6.5in}
+\setlength{\textheight}{9in}
+\setlength{\evensidemargin}{0in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\topmargin}{+.4in}
+\setlength{\parindent}{0pt}
+\captionsetup{font=small, width=0.8\textwidth}
+
+\usepackage[margin=2.5cm]{geometry}
+
+%%%%%%%%%%%%%%% PREAMBLE %%%%%%%%%%%%%%%
+
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\DeclareMathOperator{\rank}{rank}               % Rank
+\DeclareMathOperator{\vol}{vol}                 % Volume
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}     % Absolute Value
+
+%%%%%%%%%%%%%%% BEGIN DOCUMENT %%%%%%%%%%%%%%%
+
+\begin{document}
+\onehalfspacing
+
+%%%%%%%%%%%%%%% TITLE %%%%%%%%%%%%%%%
+
+\maketitle
+
+%%%%%%%%%%%%%%% ABSTRACT %%%%%%%%%%%%%%%
+
+\begin{abstract}
+
+With no more than 150 milliseconds to identify and assess an incoming pitch, Major League Baseball (MLB) hitters rely on exceptionally fast thinking to make near-instantaneous swing decisions. Consequently, players employ cognitive heuristics to quickly associate new information with existing mental references, introducing a vulnerability to behavioral biases. Using pitch-by-pitch data from MLB’s Statcast, we evaluate hundreds of thousands of individual swing decisions under a behavioral economic framework, with a focus on prospect theory. Our findings corroborate the theorized presence of both the representativeness heuristic and loss aversion in player decision-making at the pitch level.  First, we find that batters, after observing more than two consecutive similar pitch results (balls or strikes), are more likely to anticipate the same outcome on the following pitch. We also find convincing evidence of loss aversion, with players exhibiting pronounced asymmetries in risk preferences with respect to count context. Specifically, our analysis reveals that batters are significantly more risk-seeking in two-strike counts, and more risk-averse in even and 3-0 counts. This behavior is observed even when controlling for pitch characteristics and trade-offs in expected utility. 
+
+\end{abstract}
+
+%%%%%%%%%%%%%%% BODY OF PAPER %%%%%%%%%%%%%%%
+
+\section{Introduction}
+
+While the ubiquitous adoption of analytics in Major League Baseball (MLB) has motivated dramatic changes to teams’ strategic approaches to the sport, there is an absence of existing research related to the psychology of player decision-making. By situating a specific family of in-game choices---swing decisions---in a broader behavioral economic literature on decision-making under uncertainty, this study aims to identify potential cognitive biases in player behavior. Of late, significant research attention has been given to modeling swing choice as a means of performance evaluation, with less focus on the human element of these decisions.
+
+\vspace{5mm} %5mm vertical space
+
+Because hitting a baseball is so challenging---and because batters do not possess perfect information about the characteristics of an upcoming pitch---players rely on cognitive heuristics (i.e., mental shortcuts) to guide decision-making under uncertainty. While these heuristics exist as convenient strategies for navigating complex decisions, they also introduce systemic biases that are often unconscious to the decision-maker. In order to assess cognitive biases in these decision-making processes, we focus on two specific behavioral economic concepts: the representativeness heuristic and prospect theory.
+
+\vspace{5mm} %5mm vertical space
+
+The representativeness heuristic represents the estimation of an unknown probability by assessing an uncertain event’s similarity to an existing mental paradigm \parencite{kahneman_psychology_1973}. In the case of baseball, batters use the heuristic to estimate the probability that a pitch will be a ball or strike based on the outcomes of previous pitches. Prospect theory, meanwhile, broadly suggests that individuals exhibit asymmetrical risk preferences in the loss frame and gain frame \parencite{kahneman_prospect_1979}. Unlike expected utility theory, which is derived from economic models of rational choice, prospect theory acknowledges irrationalities in individual behavior. According to prospect theory, individuals tend to be risk-seeking (i.e., loss-averse) when presented with potential losses, and risk-averse when presented with potential gains. In other words, people possess a tendency to process losses more intensely than gains.
+
+\vspace{5mm} %5mm vertical space
+
+Using pitch-by-pitch data from MLB’s Statcast, we assess hundreds of thousands of individual swing decisions under the aforementioned behavioral economic framework. Results from the succeeding research corroborate the theorized presence of both the representativeness heuristic and loss aversion in player decision-making at the pitch level.  First, we find that batters, after observing more than two consecutive similar pitch results (balls or strikes), are more likely to anticipate the same outcome on the following pitch. We also find convincing evidence of loss aversion, with players exhibiting pronounced asymmetries in risk preferences with respect to count context. Specifically, we find that batters are significantly more risk-seeking in two-strike counts, and more risk-averse in even and 3-0 counts. This behavior is observed even when controlling for pitch characteristics and trade-offs in expected utility. In each scenario, the presence of these biases leads to an increase in non-optimal swing decisions, adversely affecting player performance.
+
+\vspace{5mm} %5mm vertical space
+
+This paper begins with a brief overview of the academic literature informing the theoretical framework of our research, followed by a detailed description of our methodology and modeling approach. Subsequent sections focus on causal inference and the identification of behavioral biases. Ultimately, the use of behavioral economics enables a more informed understanding of context-dependent swing decisions in baseball. Moreover, utilizing the attained economic inferences about player decision-making leads to a better understanding about human behavior in general, particularly in the face of uncertainty. By combining insights from baseball analytics and behavioral economics, we hope to provide a reciprocal understanding of the two ostensibly disparate fields---making contributions to the behavioral economic literature from a new competitive setting.
+
+\section{Literature Review}
+
+\subsection{Foundations of Behavioral Economics}
+
+One of the earliest challenges to the neoclassical model of economic decision-making was Herbert A. Simon’s concept of bounded rationality. Whereas the prevailing neoclassical framework revolved heavily around the notion of individuals as utility-maximizing entities with rational preferences, Simon searched for a new theoretical basis that integrated the limitations of human cognition. Describing the concept of bounded rationality in \textit{Administrative Behavior}, Simon wrote, “the capacity of the human mind for formulating and solving complex problems is very small compared with the size of the problems whose solution is required for objectively rational behavior in the real world.” \parencite{simon_behavioral_1955}
+
+\vspace{5mm} %5mm vertical space
+
+In the late 1970s, cognitive psychologists Daniel Kahneman and Amos Tversky began collaborating on a series of academic publications on the subject of decision-making under risk, extending Simon’s idea of bounded rationality. This collaboration resulted in the introduction of prospect theory---an alternative model to the existing expected utility hypothesis \parencite{kahneman_prospect_1979}. This theory, as well as Kahneman’s later work with economist Richard Thaler \parencite{thaler_toward_1980}, would serve as the foundation for behavioral economics as a field.
+
+\vspace{5mm} %5mm vertical space
+
+In their model, Kahneman and Tversky aimed to reassess risky and uncertain decisions, positing that individuals may be either risk-averse or risk-seeking (as opposed to strictly utility-maximizing). According to prospect theory, when faced with potential gains, individuals are risk-averse---preferring certainty at the expense of higher expected utility. Conversely, when faced with potential losses, individuals are risk-seeking---opting for decisions with lower expected utility in order to avoid incurring losses. This concept of loss aversion directly contradicted neoclassical expected utility theory, which strictly considered choices that maximize utility.
+
+\subsection{The Hot Hand Fallacy and Representativeness Heuristic}
+
+Another popular cognitive phenomenon in the field of behavioral economics, the hot hand fallacy was first described in the context of sports explicitly. While the hot hand fallacy more generally explains people’s inability to properly judge random sequences, economists Thomas Gilovich, Robert Vallone, and Amos Tversky introduced the concept by questioning the perception that basketball players have “hot hands.” As the authors explain, “basketball players and fans alike tend to believe that a player’s chances of hitting a shot are greater following a hit than following a miss on the previous shot.” \parencite{gilovich_hot_1985}. The three economists proceeded to dismiss the notion of a hot hand by analyzing the shooting records of the Philadelphia 76ers and Boston Celtics, finding no evidence for a positive correlation between the outcomes of successive shots.
+
+\vspace{5mm} %5mm vertical space
+
+Studies on the hot hand, including the aforementioned 1985 paper, draw from the broader notion of the representativeness heuristic proposed by Kahneman and Tversky over a decade earlier. The representativeness heuristic refers to any decision-making shortcut made by individuals when attempting to form judgments about events with uncertain probabilities \parencite{tversky_judgment_1974}. In the case of the 1985 basketball study, Gilovich, Vallone, and Tversky find that the detection of streaks in random sequences is attributed to a “general misconception of chance according to which even short random sequences are thought to be highly representative of their generating process.”
+
+\subsection{Fast and Slow Thinking}
+
+In 2011, Kahneman revisited several decades of behavioral research in his bestselling book, \textit{Thinking, Fast and Slow}. Building off of his previous work on prospect theory, Kahneman introduced a new means of analyzing cognitive biases through a differentiation of two modes of thought: “System 1” and “System 2” thinking \parencite{Kahneman11}. System 1 thinking, Kahneman explains, is the fast, instinctive, and emotional decision-making associated with near-instantaneous responses to situations and stimuli. System 2 thinking, on the other hand, is slow and deliberative---activated consciously by the individual when making more informed strategic choices.
+
+\vspace{5mm} %5mm vertical space
+
+Kahneman’s concept of System 1 and System 2 thinking offers a perfect lens to compare the pitch-level decision-making of pitchers and batters. For pitchers, the player is given sufficient time to weigh different choices and purposefully determine pitch type and location, often with assistance from the catcher and coaching staff. Batters, meanwhile, have no more than 150 milliseconds to identify a pitch and make a swing decision \parencite{Quinton17}. As a result, batters rely almost entirely on fast thinking to make immediate and instinctive choices. As Kahneman notes, System 1 thinking involves the use of heuristics to quickly associate new information with existing references and patterns, creating a susceptibility to cognitive biases. This fact makes batter swing decisions a particularly inviting domain for behavioral analysis.
+
+\subsection{Behavioral Economics and Sports}
+
+In addition to the aforementioned foundational texts of \textcite{simon_behavioral_1955}, \textcite{kahneman_psychology_1973, kahneman_prospect_1979}, and \textcite{thaler_toward_1980}; this paper interacts with a broader academic literature on decision-making in sports. Perhaps more than any other sport, golf is a popular focus for behavioral economists \parencite{sachau_birdie_2012, elmore_loss_2021}. Generally, researchers find that professional golfers are asymmetrical in their risk preferences, depending on whether or not they are presented with potential gains or losses. The perception of these gains and losses is often shaped by a particular reference point, such as the “cut” in a major tournament. 
+
+\vspace{5mm} %5mm vertical space
+
+Tennis---also being an individual sport---presents another relevant platform where players frequently face isolated decision-making moments under high pressure. Similar to golfers, professional tennis players are more likely to take risks in their serve speed when behind in score \parencite{anbarci_revisiting_2018}. This behavior reflects a wider pattern of risk-taking in response to losses observed across individual sports. In tennis, the scoring system itself exacerbates the effect---being a single point away from losing a game, set, or match can meaningfully alter a player's risk tolerance.
+
+\vspace{5mm} %5mm vertical space
+
+In baseball, the interaction between the pitcher and hitter is largely independent of the actions of the other eight players on the field, making individual behavior easier to analyze than in other team sports like basketball and football. Consequently,  several researchers have used baseball data to assess behavioral biases and individual strategy. One notable area of behavioral bias comes from officiating, where umpires are observed to contract the strike zone in two-strike counts \parencite{green_what_2014}. In terms of pitching strategy, studies have shown that reducing between-pitch correlation in velocity and movement decreases the batter’s ability to predict the properties of upcoming pitches \parencite{healey_using_2017}. 
+
+\vspace{5mm} %5mm vertical space
+
+Despite these findings, there remains a lack of behavioral research on batter swing decisions. While existing studies have identified reference dependence in swing decisions with respect to player batting average \parencite{yashiki_2020} and 3-2 counts \parencite{toma_over-swinging_2021}, the majority of swing decision research has focused on predictive modeling for plate discipline evaluation \parencite{aucoin_quantifying_2019, ciardiello_lets_2021, mould_quantifying_2022, yee_evaluating_2024}. This study aims to bridge this gap by analyzing swing decisions through a behavioral lens, integrating statistical learning techniques with behavioral economic insights.
+
+\section{Empirical Strategy}
+
+\subsection{Overview}
+
+Our empirical strategy involves a comprehensive analysis of batter decision-making, assessing three critical elements of the swing decision: 
+\begin{itemize}
+\item Rational inputs (e.g., pitch location, speed, and movement).
+\item Heterogeneous risk preferences (e.g., batter swing rates, aggressiveness).
+\item Behavioral biases (e.g., the representativeness heuristic and loss aversion).
+\end{itemize}
+While most swing decision models focus predominantly (if not exclusively) on the rational determinants of optimal swing choice, our goal is to evaluate the effects of player behavior.
+
+\vspace{5mm} %5mm vertical space
+
+First, we use random forests to construct non-parametric models of swing probability and swing expected utility, respectively. These tree-based models allow us to capture the aforementioned “rational” inputs of the swing decision accurately by accounting for nonlinearities and conditional dependencies between pitch quality measures. Additionally, the versatility of random forests facilitates both classification tasks and regression tasks—allowing us to predict the binary swing choice and the resulting expected utility. Random forests are also particularly robust against overfitting, enabling the inclusion of numerous predictors without the collinearity issues commonly faced by parametric models.
+
+\vspace{5mm} %5mm vertical space
+
+Once the random forest models are constructed, we incorporate the predicted values of swing probability and expected utility as controls in a series of linear models. The key explanatory variables in this modeling stage are contextual and behavioral indicators that help quantify the impact of human cognition on swing decisions. Our objective is to determine if behavioral biases influence player decisions, even after controlling for all non-behavioral (i.e., rational) predictors of the swing choice. 
+
+\subsection{Addressing the Role of Count}
+
+It is also necessary to recognize the importance of count context in player decision-making. Different counts not only produce different pitches---which we control for using our random forest model of pitch characteristics---but they also inherently introduce different expected utilities for swinging versus taking (see Figure \ref{fig:CountOverlay}). For example, a batter is more likely to see a breaking pitch away from the strike zone on a 0-2 count than they would on a 2-0 count. However, should the pitcher elect not to throw away from the strike zone, the expected utility of taking a pitch inside the zone on a 0-2 count is substantially lower than on a 2-0 count. For the exact spatial distribution of swing probability and expected utility estimates based on count, see Figures \ref{fig:SwingProbCount} and \ref{fig:SwingREACount}.
+
+\vspace{5mm} %5mm vertical space
+
+Our linear models account for these variations by incorporating the count-dependent expected utility of different pitch results, based on \href{https://www.fangraphs.com/}{FanGraphs}' historical run expectancy matrix \parencite{weinberg_re24_2014}. Importantly, count also serves as the reference point for the gain and loss frames in the subsequent prospect theory analysis. Thus, the outputs of our random forest models for swing probability and expected utility are essential controls in avoiding confounded parameter estimates in our linear models, allowing for reliable causal inference in our identification of behavioral biases.
+
+
+\section{Modeling Swing Probability and Run Expectancy}
+
+\subsection{Data}
+
+All pitch-level data is sourced from \href{https://www.mlb.com/statcast}{Statcast}, MLB’s state-of-the-art tracking technology. In 2020, MLB installed twelve Hawk-Eye cameras and advanced ball tracking hardware in each Major League stadium---enabling the highly-accurate measurement of on-field action for every pitch and batted ball \parencite{noauthor_statcast}. Statcast provides detailed pitch quality measures, as well as traditional event and play-by-play data. To control for recent rule changes that introduced a pitch timer and defensive shift restrictions \parencite{Castrovince23}, we use data from 2023 exclusively. This ensures that any between-year changes in player behavior resulting from the rule changes do not affect our models. In all, Statcast tracked over 700,000 pitches in the 2023 regular season.
+
+\subsection{Defining Risk and Uncertainty}
+
+Risk arises from the inherent uncertainty of economic outcomes---people are invariably presented with the possibility of a certain objective possessing unwanted consequences. In the case of batter decision-making, uncertainty refers to the variance in the range of outcomes for the two possible swing choices: swing or take. Because the sole objective of baseball is to either score or prevent runs, we use runs as a proxy for utility. Consequently, our initial modeling goal is to estimate a swing decision’s run expectancy added---a variable calculated by Statcast using the previously cited run expectancy matrix.
+
+\vspace{5mm} %5mm vertical space
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{DensityOverlayBot.pdf}
+    \caption{Overlaid density plots comparing the distribution of the change in run expectancy by swing decision at the pitch level. Swings and takes produce mean changes in run expectancy of approximately -0.02 and 0.02, respectively (with corresponding variances of 0.1 and 0.01).}
+    \label{fig:SwingOverlayOverall}
+\end{figure}
+
+In general, swinging entails both a greater variance in outcomes and a higher ceiling for run expectancy. Conversely, taking pitches typically results in a more consistent mean run expectancy with lower variance. The inherent risk in both decisions stems from the potential to negatively impact run expectancy, whether by recording an out or moving to a worse count state. Analysis of the distribution of expected utility (see Figures \ref{fig:SwingOverlayOverall} and \ref{fig:CountOverlay}) reveals that, on average, swinging is unambiguously riskier than taking pitches. Thus, a propensity to swing more frequently can be characterized as risk-seeking behavior. Importantly, this behavior navigates the complex risk-reward trade-offs players face---balancing immediate run scoring opportunities against the strategic advantages of caution, especially in high-leverage situations.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{FacetedOverlayBot.pdf}
+    \caption{Overlaid density plots comparing the distribution of the change in run expectancy by swing decision at the pitch level, arranged by count.}
+    \label{fig:CountOverlay}
+\end{figure}
+
+\subsection{Methodology}
+
+\subsubsection{Random Forests}
+
+As outlined in our empirical strategy, we first employ random forests to model swing probability and  run expectancy as functions of different pitch quality measures.  A random forest is a statistical learning method that combines a large sum of individual decision trees (in this case, 1000) to form a single ensemble model \parencite{james_introduction_2013}. Each tree partitions the data into smaller groups that are homogeneous with respect to the predictors, and then produces an estimate based on the average value of the response in each group. The random forest then aggregates the predictions of the individual decision trees to generate a single estimate for each observation. The motivation behind this modeling technique is that a large collection of relatively uncorrelated models will likely outperform its individual components. The aggregation of decision trees also helps mitigate overfitting and controls for conditional dependencies between explanatory variables---this is particularly important when accounting for pitch location. 
+
+\subsubsection{Model Training}
+
+Each random forest model is trained on a random sample of 30,000 observations. We tune our models using 10-fold cross-validation, selecting the optimal number of variables to be randomly sampled at each decision tree split. The hyperparameter selection is determined by the minimization of out-of-bag mean squared error (MSE) for regression, and the maximization of classification accuracy for classification. Following the tuning phase, we evaluate model performance using a separate test set of 10,000 pitches to ensure the robustness of our predictive insights. Finally, the trained models are deployed to generate estimates for each pitch in the entire dataset. All steps of model training, tuning, and testing are performed in R using the Tidyverse \parencite{tidyverse} and Caret \parencite{caret} packages.
+
+\vspace{5mm} %5mm vertical space
+
+To model swing probability, we use a single random forest classification model with a binary swing indicator as the response variable. This model produces continuous probability estimates, as illustrated in Appendix Figure \ref{fig:SwingProbAllCounts}. To predict expected utility, we combine the outputs of two distinct random forest regression models. First, we model run expectancy added (REA) from a random subset of data consisting only of swings. Then, we model REA from a random subset of data consisting only of takes. The estimates from these two models are then combined to calculate the overall predicted REA for swinging versus taking across all pitches in our dataset (see Appendix Figure \ref{fig:REAAllCounts}).
+
+\subsection{Modeling Results}
+
+\subsubsection{Predictive Performance}
+
+The random forest model for swing probability produces highly accurate swing decision predictions, with a classification accuracy of approximately 0.778 and an area under the receiver operating characteristic curve (AUC) of roughly 0.850. The random forest regressions for expected utility, meanwhile, produce MSEs of 0.33 and 0.06 for swings and takes, respectively. Furthermore, the combined run expectancy estimates exhibit a correlation coefficient of $r = 0.26$ with observed run expectancy, indicating a positive linear relationship.
+
+\subsubsection{Modeling Insights}
+
+Using the model outputs, we introduce a number of novel measures for player performance and behavior. First, we calculate the expected run expectancy added (xREA) of each pitch as a function of the swing probability and the separate REA estimates for swings and takes. This is achieved by weighting the predicted REAs of swinging and taking by the modeled probability that a batter will choose either action, given the observed pitch characteristics and game state. Specifically, xREA is computed using the formula:
+
+\begin{equation}
+xREA_i = (\hat{\mathbb{P}}_{\text{swing}, i} \times \widehat{REA}_{\text{swing}, i}) + ((1 - \hat{\mathbb{P}}_{\text{swing}, i}) \times \widehat{REA}_{\text{take}, i})
+\end{equation}
+
+\vspace{5mm} %5mm vertical space
+
+At the player level, we then calculate the proportion of pitches in which a batter made the “optimal” swing decision, as determined by the relative expected utilities of each swing choice for a given pitch:
+
+\begin{equation}
+\text{Optimal \%} = \frac{\sum_{i=1}^{n} I_i}{n}
+\end{equation}
+
+where
+
+\begin{equation}
+I_i = 
+\begin{cases} 
+1 & \text{if } (\widehat{REA}_{\text{swing}_i, i} \geq \widehat{REA}_{\text{take}, i} \land \text{swing}_i) \text{ or } (\widehat{REA}_{\text{swing}, i} < \widehat{REA}_{\text{take}, i} \land \text{take}_i), \\
+0 & \text{otherwise}.
+\end{cases}    
+\end{equation}
+ 
+\vspace{5mm} %5mm vertical space
+
+We also use the swing probability estimates to evaluate player aggressiveness. We define “aggressive” swing decisions as instances where players choose to swing at pitches that have a calculated swing probability of less than fifty percent:
+
+\begin{equation}
+\text{Aggressive \%} = \frac{\sum_{i=1}^{n} I(\hat{\mathbb{P}}_{\text{swing}, i} < 0.5 \land \text{swing}_i)}{\sum_{i=1}^{n} I(\hat{\mathbb{P}}_{\text{swing}, i} < 0.5)}
+\end{equation}
+
+\vspace{5mm} %5mm vertical space
+
+The previous formulas all use the swing probability and expected utility predictions to generate insightful metrics for plate discipline and player evaluation. Aggregating the pitch-by-pitch data at the player level allows us to discern  particularly aggressive and cautious players, as well as players whose swing decisions produced the highest expected REA (dxREA).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{SwingProbCount.pdf}
+    \captionsetup{font=small, width=0.9\linewidth}
+    \caption{Hexbin plots illustrating the spatial distribution of estimated swing probability, arranged by count. Evidently, count and swing probability are related---an effect of different pitch characteristics, dynamic trade-offs in expected utility, and behavioral biases.}
+    \label{fig:SwingProbCount}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{SwingRECount.pdf}
+    \captionsetup{font=small, width=0.9\linewidth}
+    \caption{Hexbin plots illustrating the spatial distribution of estimated REA values for swinging versus taking, arranged by count. Blue-shaded regions indicate locations where taking provides greater expected utility than swinging. Red-shaded regions indicate locations where swinging provides greater expected utility than taking.}
+    \label{fig:SwingREACount}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{QuadrantPlot.pdf}
+    \caption{Quadrant plot comparing the standardized tREA and sREA per plate appearance (PA) of all 210 qualified (PA $\ge$ 400) hitters in 2023. Players greater than one standard deviation from the mean in both measures or two standard deviations from the mean in one measure are noted.}
+    \label{fig:QuadrantPlot}
+\end{figure}
+
+We can also use the raw run expectancy data to determine which players accumulated the lowest and greatest observed REAs in 2023 (see Figure \ref{fig:TimeSeries}). Additionally, by subsetting the data by swing decision, we can calculate which players added the most value from their takes and swings separately. In Figure \ref{fig:QuadrantPlot}, we produce and display metrics for take run expectancy added (tREA) and swing run expectancy added (sREA).
+
+A detailed leaderboard of the league’s top twenty hitters---ranked by REA---is available in Appendix Figure \ref{fig:Leaderboard}. The leaderboard includes each player’s aggregate expected REA, according to both the characteristics of the pitches faced (xREA) and their corresponding swing decisions (dxREA). While some players compensate for poor plate discipline with exceptional power and/or bat-to-ball skills, there is a notable correlation between players' dxREAs and their observed REAs ($r = 0.45$). By nature, the leaderboard consists largely of players who outperformed modeling expectations, leading to mostly positive residuals. For team-level comparisons of dxREA and REA, see Appendix Figures \ref{fig:TeamxREA} and \ref{fig:TeamREA}.
+
+\vspace{5mm} %5mm vertical space
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{TimeSeries.pdf}
+    \caption{Time series of the cumulative REA of the five best and worst offensive performers of 2023 (by REA). The grey shaded area represents the All-Star break.}
+    \label{fig:TimeSeries}
+\end{figure}
+
+The leaderboard also includes metrics for plate discipline and aggressiveness. Intuitively, smarter swing decisions lead to better outcomes on average. Overall, optimal swing decisions result in a mean REA of 0.03 per pitch, compared to a mean REA of -0.05 per pitch for non-optimal swing decisions. This difference underscores a positive linear relationship between optimal swings and observed REA ($r = 0.18$).
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{xREAvREA.pdf}
+    \caption{Scatter plot illustrating the linear relationship between total xREA and REA in 2023. Players with greater aggregate xREAs generally observed more pitches with high expected values (typically outside the strike zone) as a result of being pitched around. Players above the dashed line outperformed modeling expectations, with a few exceptional values noted. Aaron Judge and Jose Altuve stand out as potential outliers due to their anomalous strike zones. As the tallest and shortest hitters in 2023, respectively, their abnormally large and small strike zones may have influenced their xREA estimates.}
+    \label{fig:xREAvREA}
+\end{figure}
+
+\subsubsection{Feature Importance}
+
+In addition to producing accurate predictions, random forests also inherently assess feature importance as part of their training algorithms. For regression tasks, random forests determine feature importance by comparing the relative increase in node purity when different predictors are randomly sampled at each decision tree split. For classification tasks, the algorithm evaluates the relative mean decrease in Gini impurity at each split \parencite{caret}. 
+
+\vspace{5mm} %5mm vertical space
+
+In our analysis, we use feature importance to identify which pitch characteristics are most influential in determining a batter's swing decision and the expected utility of swings and takes. For the swing probability model, the swing decision predictions are most significantly impacted by pitch location, movement, and velocity (see Appendix Figure \ref{fig:ImportanceSwingProbModel}). For the expected utility of takes, the most important model features are pitch location and the number of balls in the count  (see Appendix Figure \ref{fig:ImportanceTakeREAModel}). For the expected utility of swings, feature importance is more evenly spread between predictors, likely because of the greater variance in the response (see Appendix Figure \ref{fig:ImportanceSwingREAModel}). 
+
+\section{Identifying Cognitive Biases in Swing Decisions}
+
+\subsection{Methodology}
+
+Revisiting our empirical strategy, we aim to address three critical components of the swing decision in our analysis: rational inputs, heterogeneous risk preferences, and behavioral biases. Having established reliable controls for rational swing probability and expected utility using our random forest models, we proceed to quantify players’ individual risk preferences.
+
+\vspace{5mm} %5mm vertical space
+
+We measure player risk preferences using several metrics, including the novel variables introduced earlier—aggressive swing rate (aggressive $\%$) and optimal swing rate (optimal $\%$)—as well as more basic measures of batter behavior such as overall swing rate (swing $\%$), in-zone swing rate (z-swing $\%$), and out-of-zone swing rate (o-swing $\%$).
+
+\vspace{5mm} %5mm vertical space
+
+After computing swing rates for each player in the dataset, we then construct a series of parametric models with various behavioral context indicators as our key explanatory variables. By controlling for rational inputs and individual risk preferences effectively, we are able to isolate the marginal effect of different cognitive biases by analyzing the direction and magnitude of the coefficient estimates associated with each behavioral variable.
+
+\subsubsection{Data Leakage and Empirical Bayes Estimation}
+
+In order to maintain the validity of our models, we take careful measures to prevent data leakage in our estimation of player risk preferences. Data leakage occurs in the model training process when information is used which would not be available at the actual, chronological time of prediction. Because player behavior adjusts throughout a season, we must avoid retroactively applying a player’s full-season summary data to all of their previous observations. To address this, we calculate swing rates as cumulative proportions---maintaining the integrity of the temporal order of events in our dataset.
+
+\vspace{5mm} %5mm vertical space
+
+However, a limitation of using cumulative proportions is that early-season observations may not have sufficient sample sizes to produce unbiased approximations of player risk preferences. This is also true for players with fewer total observations---their true risk preferences are less accurately estimated than players with larger sample sizes. To account for this, we perform empirical Bayes shrinkage to appropriately regress small-sample values towards their respective means (see Appendix Figure \ref{fig:EBShrinkage}). This technique involves weighing and shrinking values towards a selected prior \parencite{martin_shrinkage_2018}. In empirical Bayes, priors are calculated from the observed values of each variable, as modeled by the following beta distribution:
+
+\begin{equation}
+X \sim \text{Beta}(\alpha_0, \beta_0)
+\end{equation}
+
+where
+
+\begin{equation}
+\alpha_0 = \mu \left(\frac{\mu(1-\mu)}{\text{var}} - 1\right)
+\end{equation}
+\begin{equation}
+\beta_0 = \alpha_0 \left(\frac{1-\mu}{\mu}\right)
+\end{equation}
+
+\vspace{5mm} %5mm vertical space
+
+Because all of our risk preference variables are rate statistics, we are able to use the same general beta distribution for shrinkage across measures. However, different variables stabilize at different thresholds, requiring unique cutoff points for sample size inclusion in the mean and variance calculations of priors \parencite{slowinski10}. Once empirical priors are calculated, we perform shrinkage and return the following posterior estimates for each observation:
+
+\begin{equation}
+p_i = (\alpha_i + \alpha_0)/(\beta_i+ \alpha_0 + \beta_0)
+\end{equation}
+
+\vspace{5mm} %5mm vertical space
+
+Here, $p_i$ is equal to the sample-adjusted proportion estimate for each variable and observation. In the case of swing rate, for example, $\alpha_i$ would represent the cumulative swings and $\beta_i$ would represent the cumulative pitches for a given player at the time of the observation. The shrinkage step is as simple as adding $\alpha_0$  to the cumulative number of swings, and $\alpha_0 + \beta_0$ to the cumulative number of pitches. For observations with large cumulative sample sizes, little to no shrinkage is performed, since we have approached the true (i.e., stable) proportion.
+
+\subsubsection{Context Indicators}
+
+We define several game context indicator variables with relevance to our selected cognitive biases. For our assessment of the representativeness heuristic, we consider the number of consecutive balls or strikes preceding a given pitch (within a plate appearance), as well as indicators for whether the previous plate appearance resulted in a hit, walk (BB), or strikeout (SO). For our analysis of prospect theory, we introduce variables defining the gain and loss frames using count context. This includes a continuous variable (pitches ahead), as well indicators for specific count states (e.g., two-strike count, even count, and 3-0 count).
+
+\subsubsection{Model Specification}
+
+In our analysis, we employ both Ordinary Least Squares (OLS) and logistic regression for causal inference. OLS is particularly valuable for examining the magnitude and direction of each parameter’s relationship with the response variable, providing clear, interpretable coefficient estimates that reflect the effect size and significance. Logistic regression, while less interpretable, offers a direct way to model the binary swing choice with a logistic function that handles the bounded nature of probability, thereby providing more precise predictions. Our first linear model---which focuses on causal inference for the representativeness heuristic---is specified as follows:
+
+\begin{align}
+Swing_i = & \, \beta_0 + \beta_1 \hat{\mathbb{P}}_{\text{swing}, i} + \beta_2 PitchNumber_i + \beta_3 PrevHit_i + \beta_4 PrevBB_i \nonumber \\
+          & + \beta_5 PrevSO_i + \beta_6 ConsecutiveBalls_i + \beta_7 ConsecutiveBalls_i^2 \nonumber \\
+          & + \beta_8 ConsecutiveStrikes_i + \gamma x_i + \varepsilon_i
+\label{eq:reg_rep}
+\end{align}
+
+\vspace{5mm} %5mm vertical space
+
+Here, we utilize count-dependent swing probability to control for the non-behavioral inputs influencing swing choice. Then, we include our game context indicators to estimate the effects of the representativeness heuristic on player swing decisions. During our exploratory data analysis, we identified a non-linear relationship between consecutive balls and the swing decision (see Appendix Figure \ref{fig:LinearityTestLog}), prompting us to include a polynomial term in our model.  Finally, $x_i$ represents a vector of controls for heterogeneous risk preferences (in this case, swing $\%$, optimal $\%$, and aggressive $\%$).
+
+\vspace{5mm} %5mm vertical space
+
+Because our models analyzing prospect theory use count-related variables to distinctly define the gain and loss frames, we control for the rational swing decision inputs and individual risk preferences differently. To avoid redundancy and bias, we exclude balls and strikes as features in the random forest model used to produce the swing probability estimates. This new, count-independent swing probability control allows us to separately assess the behavioral effect of count context in a linear setting. For the prospect theory models, we also replace count-dependent risk preference controls (aggressive $\%$ and optimal $\%$) with count-independent risk preference controls (z-swing $\%$ and o-swing $\%$). It is crucial, however, that these models maintain a count-dependent control for expected utility trade-offs, as run expectancy is inherently influenced by the count state. With this in mind, we specify our prospect theory models as follows:
+
+\begin{align}
+Swing_i = & \, \beta_0 + \beta_1 \hat{\mathbb{P}}_{\text{swing}, i} + \beta_2 {xREA}_{\text{swing}, i} + \beta_3 PitchNumber_i \nonumber \\
+          & + \beta_4 ConsecutiveBalls_i + \beta_5 ConsecutiveBalls_i^2 + \beta_6 ConsecutiveStrikes_i \nonumber \\
+          & + \beta_7 PitchesAhead_i + \gamma x_i + \varepsilon_i
+\label{eq:reg_pt1}
+\end{align}
+
+\begin{align}
+Swing_i = & \, \beta_0 + \beta_1 \hat{\mathbb{P}}_{\text{swing}, i} + \beta_2 {xREA}_{\text{swing}, i} + \beta_3 PitchNumber_i \nonumber \\
+          & + \beta_4 ConsecutiveBalls_i + \beta_5 ConsecutiveBalls_i^2 + \beta_6 ConsecutiveStrikes_i \nonumber \\
+          & + \beta_7TwoStrikes + \beta_8\text{3-0} + \beta_9Even + \gamma x_i + \varepsilon_i
+\label{eq:reg_pt2}
+\end{align}
+
+\vspace{5mm} %5mm vertical space
+
+The first prospect theory model contains a continuous context variable (pitches ahead) to represent the degree to which a player is leading or trailing in the count. The second model uses state-specific indicator variables to delineate exact count contexts where players may be influenced by loss aversion (e.g., two-strike counts, 3-0 counts, and even counts). Following model deployment, specification tests were performed to confirm appropriate model specifications, examples of which are illustrated in Appendix Figures \ref{fig:LinearityTestLog}, \ref{fig:ResidualsBinned}, and \ref{fig:QQ}.
+
+
+\subsection{Results}
+
+\subsubsection{Representativeness Heuristics}
+
+The results from the regression specified in Equation \ref{eq:reg_rep} are detailed in Table \ref{tab:rep}. The parameter estimates for all variables (excluding consecutive strikes and optimal $\%$) are significant at the $\alpha = 0.05$ level. Additionally, an adjusted $R^2$ value of 0.375 for the OLS model and a classification accuracy of 0.775 for the logistic model suggest good model fits.
+
+\vspace{5mm} %5mm vertical space
+
+Overall, the coefficient estimates presented in Table \ref{tab:rep} reveal the presence of the representativeness heuristic in player swing decisions. Even when controlling for expected utility, individual risk preferences, and the observable characteristics of the pitches themselves, player swing decisions are impacted by the outcomes of preceding pitches. 
+
+\vspace{5mm} %5mm vertical space
+
+After one ball, players are marginally more likely to expect a strike on the next pitch. This behavior resembles the gambler’s fallacy, wherein an individual erroneously believes that the outcome of a previous random event can influence the probability of a future event \parencite{gilovich_hot_1985}. Here, the batter assumes that a strike is slightly more probable following a single ball. However, after two or more consecutive balls, players are more likely to expect another ball on the following pitch. In this case, the batter believes that consecutive balls increase the likelihood of another ball (see Figure \ref{fig:ProspectBalls}). This effect is only evident for consecutive strikes (including foul balls) in high-pitch plate appearances (see Figure \ref{fig:ProspectStrikes}).
+
+\vspace{5mm} %5mm vertical space
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{ProspectBalls.pdf}
+    \caption{Line graph comparing the average expected and observed swing rate by the number of consecutive balls preceding the swing decision.}
+    \label{fig:ProspectBalls}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Prospect Strikes.pdf}
+    \caption{Line graph comparing the average expected and observed swing rate by the number of consecutive strikes preceding the swing decision.}
+    \label{fig:ProspectStrikes}
+\end{figure}
+
+\begin{table}[H] \centering 
+  \caption{Regression Results --- Representativeness Heuristic} 
+\footnotesize
+\begin{tabular}{@{\extracolsep{5pt}}lD{.}{.}{-3} D{.}{.}{-3} } 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{2}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-3} 
+\\[-1.8ex] & \multicolumn{2}{c}{Swing} \\ 
+\\[-1.8ex] & \multicolumn{1}{c}{\textit{OLS}} & \multicolumn{1}{c}{\textit{logistic}} \\ 
+\\[-1.8ex] & \multicolumn{1}{c}{(1)} & \multicolumn{1}{c}{(2)}\\ 
+\hline \\[-1.8ex] 
+ Prob. Swing (RF) & 1.041^{***} & 5.726^{***} \\ 
+  & (0.005) & (0.037) \\ 
+  & & \\ 
+ Pitch of PA & 0.015^{***} & 0.150^{***} \\ 
+  & (0.003) & (0.021) \\ 
+  & & \\ 
+ Player Swing \% (EB) & 0.519^{***} & 3.306^{***} \\ 
+  & (0.075) & (0.476) \\ 
+  & & \\ 
+ Player Aggressive \% (EB) & 0.761^{***} & 4.891^{***} \\ 
+  & (0.053) & (0.336) \\ 
+  & & \\ 
+ Player Optimal \% (EB) & 0.128 & 0.571 \\ 
+  & (0.102) & (0.653) \\ 
+  & & \\ 
+ Previous PA Hit & -0.009^{**} & -0.054^{**} \\ 
+  & (0.003) & (0.022) \\ 
+  & & \\ 
+ Previous PA BB & -0.015^{***} & -0.106^{***} \\ 
+  & (0.005) & (0.032) \\ 
+  & & \\ 
+ Previous PA SO & 0.014^{***} & 0.091^{***} \\ 
+  & (0.004) & (0.023) \\ 
+  & & \\ 
+ Consecutive Balls Pre & 0.061^{***} & 0.330^{***} \\ 
+  & (0.005) & (0.035) \\ 
+  & & \\ 
+ (Consecutive Balls Pre)\textsuperscript{2} & -0.028^{***} & -0.160^{***} \\ 
+  & (0.002) & (0.015) \\ 
+  & & \\ 
+ Consecutive Strikes Pre & 0.003 & -0.020 \\ 
+  & (0.003) & (0.017) \\ 
+  & & \\ 
+ Constant & -0.545^{***} & -6.094^{***} \\ 
+  & (0.069) & (0.444) \\ 
+  & & \\ 
+\hline \\[-1.8ex] 
+Includes Count Controls & Yes & Yes \\ 
+Observations & \multicolumn{1}{c}{100,000} & \multicolumn{1}{c}{100,000} \\ 
+R$^{2}$ & \multicolumn{1}{c}{0.375} &  \\ 
+Adjusted R$^{2}$ & \multicolumn{1}{c}{0.375} &  \\ 
+Akaike Inf. Crit. &  & \multicolumn{1}{c}{94,979.680} \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+ & \multicolumn{2}{r}{Covariates representing probabilities or percents are scaled as decimals.} \\ 
+\end{tabular} 
+\label{tab:rep}
+\end{table} 
+
+While we observe a pronounced effect of the representativeness heuristic on swing decisions within plate appearances, its impact between plate appearances is far less prominent. Although the coefficient estimates for indicators of previous plate appearance results are statistically significant, the magnitudes of these effects are relatively small. 
+
+\subsubsection{Prospect Theory}
+
+The results from the regressions specified in Equations \ref{eq:reg_pt1} and \ref{eq:reg_pt2} are detailed in Tables \ref{tab:pt1} and \ref{tab:pt2}, respectively. All parameter estimates for both models are statistically significant at the $\alpha = 0.01$ significance level. Furthermore, each of the prospect theory models demonstrates impressive explanatory power. The OLS regressions produce adjusted $R^2$ values of 0.397 and 0.400, while the logistic regressions exhibit classification accuracies of 0.787 and 0.788. Remarkably, the third logistic regression (see Equation \ref{eq:reg_pt2}) has a greater classification accuracy and AUC (0.871) than the random forest model for swing probability (see Appendix Figure \ref{fig:LogROC}). This suggests that the integration of behavioral insights can improve the predictive performance of swing decision models, even with a far less sophisticated statistical approach.
+
+\vspace{5mm} %5mm vertical space
+
+The parameter estimates for all models reveal significant asymmetries in player risk preferences in the gain and loss frames, even after including appropriate controls. On average, players become more risk-seeking as they fall behind in the count, particularly with two strikes. Conversely, players exhibit disproportionate risk-aversion in even and 3-0 counts (see Figure \ref{fig:ProspectCountProb}). Notably, the coefficient estimates for consecutive balls and strikes maintain statistical significance with the introduction of count state variables. This reinforces the robustness of our representativeness heuristic findings in the previous model.
+
+\vspace{5mm} %5mm vertical space
+
+As predicted by Kahneman and Tversky in their description of loss aversion \parencite{kahneman_prospect_1979}, players are willing to sacrifice greater expected utility to avoid incurring losses (see Figure \ref{fig:ProspectCountUtility}). This behavioral bias results in exceedingly risk-seeking behavior in certain count contexts, and exceedingly risk-averse behavior in others. Referring back to Figures \ref{fig:SwingProbCount} and \ref{fig:SwingREACount}, we see an expansion of swing probability in two strike counts, despite the clear negative xREA of said swings. This observed propensity to increase aggressiveness when faced with losses is confirmed in our linear models, corroborating the theoretical predictions of Kahneman and Tversky.
+
+\begin{table}[H] \centering 
+  \caption{Regression Results --- Prospect Theory} 
+\footnotesize 
+\begin{tabular}{@{\extracolsep{5pt}}lD{.}{.}{-3} D{.}{.}{-3} } 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{2}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-3} 
+\\[-1.8ex] & \multicolumn{2}{c}{Swing} \\ 
+\\[-1.8ex] & \multicolumn{1}{c}{\textit{OLS}} & \multicolumn{1}{c}{\textit{logistic}} \\ 
+\\[-1.8ex] & \multicolumn{1}{c}{(1)} & \multicolumn{1}{c}{(2)}\\ 
+\hline \\[-1.8ex] 
+ Count-Ind. Prob. Swing (RF) & 1.066^{***} & 6.378^{***} \\ 
+  & (0.005) & (0.043) \\ 
+  & & \\ 
+ xREA Swing (vs. Take) & 0.136^{***} & 0.967^{***} \\ 
+  & (0.018) & (0.118) \\ 
+  & & \\ 
+ Player Z-Swing \% (EB) & 0.513^{***} & 3.401^{***} \\ 
+  & (0.032) & (0.213) \\ 
+  & & \\ 
+ Player O-Swing \% (EB) & 0.664^{***} & 4.644^{***} \\ 
+  & (0.029) & (0.200) \\ 
+  & & \\ 
+ Consecutive Balls Pre & 0.121^{***} & 0.821^{***} \\ 
+  & (0.005) & (0.036) \\ 
+  & & \\ 
+ (Consecutive Balls Pre)\textsuperscript{2} & -0.049^{***} & -0.336^{***} \\ 
+  & (0.002) & (0.015) \\ 
+  & & \\ 
+ Consecutive Strikes Pre & 0.014^{***} & 0.101^{***} \\ 
+  & (0.003) & (0.018) \\ 
+  & & \\ 
+ Pitch of PA & 0.059^{***} & 0.408^{***} \\ 
+  & (0.001) & (0.007) \\ 
+  & & \\ 
+ Pitches Ahead & -0.054^{***} & -0.372^{***} \\ 
+  & (0.002) & (0.013) \\ 
+  & & \\ 
+ Constant & -0.780^{***} & -8.324^{***} \\ 
+  & (0.019) & (0.134) \\ 
+  & & \\ 
+\hline \\[-1.8ex] 
+Observations & \multicolumn{1}{c}{100,000} & \multicolumn{1}{c}{100,000} \\ 
+R$^{2}$ & \multicolumn{1}{c}{0.397} &  \\ 
+Adjusted R$^{2}$ & \multicolumn{1}{c}{0.397} &  \\ 
+Akaike Inf. Crit. &  & \multicolumn{1}{c}{90,227.590} \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+ & \multicolumn{2}{r}{Covariates representing probabilities or percents are scaled as decimals.} \\ 
+\end{tabular} 
+\label{tab:pt1}
+\end{table} 
+
+\begin{table}[H] \centering 
+  \caption{Regression Results --- Prospect Theory (State-Specific Indicators)} 
+\footnotesize 
+\begin{tabular}{@{\extracolsep{5pt}}lD{.}{.}{-3} D{.}{.}{-3} } 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{2}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-3} 
+\\[-1.8ex] & \multicolumn{2}{c}{Swing} \\ 
+\\[-1.8ex] & \multicolumn{1}{c}{\textit{OLS}} & \multicolumn{1}{c}{\textit{logistic}} \\ 
+\\[-1.8ex] & \multicolumn{1}{c}{(1)} & \multicolumn{1}{c}{(2)}\\ 
+\hline \\[-1.8ex] 
+ Count-Ind. Prob. Swing (RF) & 1.058^{***} & 6.290^{***} \\ 
+  & (0.005) & (0.043) \\ 
+  & & \\ 
+ xREA Swing (vs. Take) & 0.155^{***} & 1.071^{***} \\ 
+  & (0.017) & (0.117) \\ 
+  & & \\ 
+ Player Z-Swing \% (EB) & 0.496^{***} & 3.298^{***} \\ 
+  & (0.032) & (0.215) \\ 
+  & & \\ 
+ Player O-Swing \% (EB) & 0.687^{***} & 4.741^{***} \\ 
+  & (0.029) & (0.200) \\ 
+  & & \\ 
+ Consecutive Balls Pre & 0.081^{***} & 0.515^{***} \\ 
+  & (0.006) & (0.042) \\ 
+  & & \\ 
+ (Consecutive Balls Pre)\textsuperscript{2} & -0.035^{***} & -0.229^{***} \\ 
+  & (0.003) & (0.017) \\ 
+  & & \\ 
+ Consecutive Strikes Pre & 0.035^{***} & 0.243^{***} \\ 
+  & (0.003) & (0.019) \\ 
+  & & \\ 
+ Pitch of PA & 0.044^{***} & 0.311^{***} \\ 
+  & (0.001) & (0.009) \\ 
+  & & \\ 
+ Two-Strike Count & 0.046^{***} & 0.319^{***} \\ 
+  & (0.004) & (0.030) \\ 
+  & & \\ 
+ 3-0 Count & -0.324^{***} & -2.559^{***} \\ 
+  & (0.016) & (0.136) \\ 
+  & & \\ 
+ Even Count & -0.021^{***} & -0.131^{***} \\ 
+  & (0.003) & (0.021) \\ 
+  & & \\ 
+ Constant & -0.731^{***} & -7.961^{***} \\ 
+  & (0.019) & (0.136) \\ 
+  & & \\ 
+\hline \\[-1.8ex] 
+Observations & \multicolumn{1}{c}{100,000} & \multicolumn{1}{c}{100,000} \\ 
+R$^{2}$ & \multicolumn{1}{c}{0.400} &  \\ 
+Adjusted R$^{2}$ & \multicolumn{1}{c}{0.400} &  \\ 
+Akaike Inf. Crit. &  & \multicolumn{1}{c}{90,027.740} \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+ & \multicolumn{2}{r}{Covariates representing probabilities or percents are scaled as decimals.} \\ 
+\end{tabular}
+\label{tab:pt2}
+\end{table} 
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{ProspectCount.pdf}
+    \caption{Line graph comparing the average expected and observed swing rate by the number of pitches ahead in the count, according to the batter's count state. Generally, count-independent expected swing rate increases with pitches ahead in the count, as pitchers have less flexibility to pitch away from the strike zone.}
+    \label{fig:ProspectCountProb}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{ProspectCount2.pdf}
+    \caption{Line graph comparing the swing xREA and fractional swings over expected (SOE) by the number pitches ahead in the count, according to the batter's count state. Both measures are standardized to allow for consistent scale and comparison.}
+    \label{fig:ProspectCountUtility}
+\end{figure}
+
+\section{Conclusion}
+
+Evidence from MLB pitch-by-pitch data provides a resounding confirmation of the presence of cognitive biases in player behavior under risk and uncertainty. Through a comprehensive analysis of individual swing decisions, we reveal the pronounced effects of the representativeness heuristic and loss aversion on player decision-making at the pitch level.
+
+\vspace{5mm} %5mm vertical space
+
+Recent studies on prospect theory find that the effect of loss aversion is especially salient in competitive environments with “real effort”  \parencite{Gill12}. It therefore comes as no surprise that the analysis of swing decisions at the Major League level support Kahneman and Thaler’s original theoretical propositions. Baseball players, like most professional athletes, are exceptionally competitive economic agents. This fact---combined with the breadth and precision of available in-game data---make baseball an ideal setting for assessing individual decision-making in an intense competitive environment.
+
+\vspace{5mm} %5mm vertical space
+
+Beyond providing valuable findings about human behavior under risk and uncertainty, our model also offers advantages to baseball players and organizations looking to utilize behavioral insights for in-game strategy. Using our models, teams can generate dynamic swing probability estimates that adapt to specific game contexts, individual risk preferences, and behavioral biases. This is particularly advantageous to pitchers, who can determine the optimal pitch type and location for different batters and situations. Hitters, meanwhile, can use modeling insights to identify and address unwanted biases in their swing decisions.
+
+\vspace{5mm} %5mm vertical space
+
+Finally, we would be remiss not to acknowledge the extraordinary decision-making capacities of the professional baseball players analyzed in this paper. The ability to gauge a moving ball and determine a swing choice faster than the blink of an eye is a nearly superhuman skill. Despite the influence of behavioral biases, baseball players remain remarkably adept decision-makers under pressure. 
+
+\clearpage
+
+\appendix
+\section*{Appendix}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{SwingProbModel.pdf}
+    \captionsetup{font=small, width=0.9\linewidth}
+    \caption{Hexbin plot illustrating the spatial distribution of estimated swing probability for all pitches.}
+    \label{fig:SwingProbAllCounts}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{CombinedModel.pdf}
+    \captionsetup{font=small, width=0.9\linewidth}
+    \caption{Hexbin plot illustrating the spatial distribution of estimated REA values for swinging versus taking for all pitches.}
+    \label{fig:REAAllCounts}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Top20.png}
+    \captionsetup{font=small, width=0.9\linewidth}
+    \caption{Leaderboard of the MLB’s top twenty hitters in 2023, ranked by total REA. For swing aggressiveness metrics, values greater than one standard deviation above or below the mean are noted in red and blue, respectively. Notably---while there is a mix of both cautious and aggressive players in the top twenty according to swing $\%$, z-swing $\%$, and aggressive $\%$---there are no players with an o-swing $\%$ greater than one standard deviation above average.}
+    \label{fig:Leaderboard}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{TeamdxREA.pdf}
+    \captionsetup{font=small, width=0.9\linewidth}
+    \caption{Diverging horizontal bar graph illustrating the standardized dxREA per plate appearance by team in 2023.}
+    \label{fig:TeamxREA}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{TeamREA.pdf}
+    \captionsetup{font=small, width=0.9\linewidth}
+    \caption{Diverging horizontal bar graph illustrating the standardized REA per plate appearance by team in 2023.}
+    \label{fig:TeamREA}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{TakeImportance.pdf}
+    \captionsetup{font=small, width=0.9\linewidth}
+    \caption{Feature importance plot illustrating the relative importance of each independent variable in the random forest regression model for take REA. Relative importance is calculated by assessing the increase in node purity generated by the selection of a given variable at each split.}
+    \label{fig:ImportanceTakeREAModel}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{SwingImportance.pdf}
+    \captionsetup{font=small, width=0.9\linewidth}
+    \caption{Feature importance plot illustrating the relative importance of each independent variable in the random forest regression model for swing REA. Relative importance is calculated by assessing the increase in node purity generated by the selection of a given variable at each split.}
+    \label{fig:ImportanceSwingREAModel}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{ImportanceProb.pdf}
+    \captionsetup{font=small, width=0.9\linewidth}
+    \caption{Feature importance plot illustrating the relative importance of each independent variable in the random forest classification model for swing probability. Relative importance is calculated by assessing the mean decrease in the Gini impurity generated by the selection of a given variable at each split.}
+    \label{fig:ImportanceSwingProbModel}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Empirical BayesBot.pdf}
+    \captionsetup{font=small, width=0.9\linewidth}
+    \caption{Overlaid density plots comparing the distribution of aggressive $\%$ by empirical Bayes treatment. When empirical Bayes shrinkage is performed, low-sample values are regressed towards the population mean of the corresponding variable.}
+    \label{fig:EBShrinkage}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{LogROC.pdf}
+    \captionsetup{font=small, width=0.9\linewidth}
+    \caption{ROC curve plotting sensitivity against type I error rate for the logistic regression model given in Equation \ref{eq:reg_pt2}. The AUC is equal to approximately 0.871, suggesting the highly accurate classification of both swings and non-swings.}
+    \label{fig:LogROC}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{Linearity.png}
+    \captionsetup{font=small, width=0.9\linewidth}
+    \caption{Linearity plots illustrating the relationships between different predictors and the log-odds of the swing response produced by the regression model given in Equation \ref{eq:reg_rep}. An assumption of linearity appears suitable for all variables except consecutive balls, which exhibits a quadratic relationship. This matches observed player behavior where, after one ball, players are marginally more likely to swing at the next pitch. However, following two or more consecutive balls, players exhibit a decrease in swing probability.}
+    \label{fig:LinearityTestLog}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{BinnedResiduals.pdf}
+    \captionsetup{font=small, width=0.9\linewidth}
+    \caption{Binned residual plot for the logistic regression model given in Equation \ref{eq:reg_pt2}. As expected, there is a slightly greater concentration of negative and positive residuals for lower and higher predicted values, respectively. Encouragingly, this relationship is symmetrical, and the consistent variance across the range of predicted values suggests that the model is appropriately specified. Note: specification tests were performed and model fit was confirmed for all models in the analysis.}
+    \label{fig:ResidualsBinned}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{QQ.pdf}
+    \captionsetup{font=small, width=0.9\linewidth}
+    \caption{Normal QQ plot for the logistic regression model given in Equation \ref{eq:reg_pt2}. The linear relationship between the theoretical and observed quantiles suggests that our residuals are normally distributed, with a slight deviation at extreme values.}
+    \label{fig:QQ}
+\end{figure}
+
+\clearpage
+
+%%%%%%%%%%%%%%% BIBLIOGRAPHY %%%%%%%%%%%%%%%
+
+\printbibliography
+\nocite{*}
+
+%%%%%%%%%%%%%%% END DOCUMENT %%%%%%%%%%%%%%%
+
+\end{document} 
