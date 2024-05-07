@@ -10,7 +10,7 @@ https://drive.google.com/file/d/1wdzj8fid0fLP3aNgUQbgD752tuPCY0Rt/view?usp=shari
 
 ## Figure Samples:
 
-![Preview1]([https://github.com/Riley-Leonard-99/Behavioral-Baseball/blob/main/Preview1.png])
+![Preview1](https://github.com/Riley-Leonard-99/Behavioral-Baseball/blob/main/Preview1.png)
 
 ![Preview2]([https://github.com/Riley-Leonard-99/Behavioral-Baseball/blob/main/Preview2.png])
 
